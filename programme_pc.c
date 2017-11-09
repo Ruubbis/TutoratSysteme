@@ -2,6 +2,7 @@
 #include <libusb-1.0/libusb.h>
 #include <stdlib.h>
 
+#define MAX_DATA 255
 
 int init_context(libusb_context ** context){
 	int status=libusb_init(context);
@@ -32,7 +33,7 @@ int find_target(int id_vendor, int id_product, libusb_context * context, libusb_
 	return -1;
 }
 
-int get_interface_number(libusb_device_handle * handle, int * configValue, int * interfaceNumber){
+int get_interface_number(libusb_device_handle * handle, int * configValue, int * interfaceNumber, int * endpoint){
 //Recupere le numero de l'interface utilise et le numero de la configuration du peripherique.
 //Retourne 0 au succes, sinon -1
 	int k;
@@ -61,6 +62,7 @@ int get_interface_number(libusb_device_handle * handle, int * configValue, int *
 			printf("Interface : %d -- Numéro : %d -- Point d'acces : %d -- Type d'acces : %d\n",n,tmp_interface_number,endpoint_desc.bEndpointAddress, endpoint_desc.bmAttributes);		
 			if(endpoint_desc.bmAttributes == 3){
 			*interfaceNumber = tmp_interface_number;
+			*endpoint = endpoint_desc.bEndpointAddress;
 			return 0;
 			}
 		}
@@ -76,10 +78,20 @@ int claim_interface(libusb_device_handle * handle, int configValue, int interfac
 	return 0;
 }
 
-int release_interface(libusb_device_handle * handle, int intfaceNumber){
-	status = libusb_release_interface(handle,interfaceNumber);
-	if(status!=0){perror("libusb_release_interface"); exit(-1);}
+int release_interface(libusb_device_handle * handle, int interfaceNumber){
+	int status = libusb_release_interface(handle,interfaceNumber);
+	if(status!=0){perror("libusb_release_interface"); return -1;}
+	return 0;
 }
+
+int read_interruption(libusb_device_handle * handle,unsigned char * data,int * bytes_in, int endpoint_in){
+	int size = 255;
+	int timeout = 0;
+	
+	int status = libusb_interrupt_transfer(handle, endpoint_in, data, size, bytes_in, timeout);
+	if(status!=0){ perror("libusb_interrupt_transfer"); return -1; }
+	return 0;
+}	
 
 int main(){
 	int id_vendor = 0x4242;
@@ -96,15 +108,18 @@ int main(){
 	//RECUPERATION DE L INTERFACE D INTERRUPTION
 	int configValue;
 	int interfaceNumber;
-	get_interface_number(handle, &configValue, &interfaceNumber);
+	int endpoint;
+	get_interface_number(handle, &configValue, &interfaceNumber, &endpoint);
 
 
 	//RECLAMATION DE L INTERFACE
 	claim_interface(handle, configValue, interfaceNumber);
 
 	//TODO
-	//
-	//
+	unsigned char * data = malloc(sizeof(char)*MAX_DATA);
+	int bytes_in;
+	read_interruption(handle, data, &bytes_in, endpoint);
+
 
 	//LIBERATION DES INTERFACE ET CLOTURE DU CONTEXTE USB
 	release_interface(handle, interfaceNumber);
