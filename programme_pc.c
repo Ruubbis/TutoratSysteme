@@ -68,9 +68,22 @@ int get_interface_number(libusb_device_handle * handle, int * configValue, int *
 	return -1;
 }
 
+int claim_interface(libusb_device_handle * handle, int configValue, int interfaceNumber){
+	int status = libusb_set_configuration(handle,configValue);
+	if(status!=0){perror("libusb_set_configuration"); return -1;}
+	status=libusb_claim_interface(handle,interfaceNumber);
+	if(status!=0){perror("libusb_claim_interface"); return -1;}
+	return 0;
+}
+
+int release_interface(libusb_device_handle * handle, int intfaceNumber){
+	status = libusb_release_interface(handle,interfaceNumber);
+	if(status!=0){perror("libusb_release_interface"); exit(-1);}
+}
+
 int main(){
-	int id_vendor = 0x413c;
-	int id_product = 0x2003;
+	int id_vendor = 0x4242;
+	int id_product = 0x0001;
 
 	//INITIALISATION BIBLIOTHEQUE
 	libusb_context *context;
@@ -85,16 +98,15 @@ int main(){
 	int interfaceNumber;
 	get_interface_number(handle, &configValue, &interfaceNumber);
 
-	int status = libusb_set_configuration(handle,configValue);
-	if(status!=0){perror("libusb_set_configuration"); exit(-1);}
-	
 
-	status=libusb_claim_interface(handle,interfaceNumber);
-	if(status!=0){perror("libusb_claim_interface"); exit(-1); }
-	
+	//RECLAMATION DE L INTERFACE
+	claim_interface(handle, configValue, interfaceNumber);
 
-	status = libusb_release_interface(handle,interfaceNumber);
-	if(status!=0){perror("libusb_release_interface"); exit(-1);}
-	//CLOTURE DU CONTEXTE USB
+	//TODO
+	//
+	//
+
+	//LIBERATION DES INTERFACE ET CLOTURE DU CONTEXTE USB
+	release_interface(handle, interfaceNumber);
 	libusb_exit(context);
 }
