@@ -1,4 +1,5 @@
 #include <avr/io.h>		// for the input/output registers
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
 // For the serial port
@@ -6,6 +7,7 @@
 #define CPU_FREQ        16000000L       // Assume a CPU frequency of 16Mhz
 
 void init_serial(int speed){
+	cli();
 	/* Set baud rate */
 	UBRR0 = CPU_FREQ/(((unsigned long int)speed)<<4)-1;
 	/* Enable transmitter & receiver */
@@ -13,7 +15,8 @@ void init_serial(int speed){
 	/* Set 8 bits character and 1 stop bit */
 	UCSR0C = (1<<UCSZ01 | 1<<UCSZ00);
 	/* Set off UART baud doubler */
-	UCSR0A &= ~(1 << U2X0); 			
+	UCSR0A &= ~(1 << U2X0);
+	sei();	
 }
 
 
@@ -28,11 +31,11 @@ unsigned char get_serial(void) {
 	return UDR0;
 }
 
-
+/*
 void output_set(unsigned char value){
 	if (value==0) PORTB &= 0xfe; else PORTB |= 0x01;
 }
-
+*/
 
 // For I/O handling (examples for PIN 8 as output and PIN 2 as input)
 void output_init(void){
@@ -57,28 +60,23 @@ int main(void){
 	output_init();
 	input_init();
 	int value;
-	unsigned msg;
+	unsigned char msg;
 	while(1){
 		value = input_get();
 		msg = 0x20 + value;
 		if (value!=0) send_serial(msg);
-		
-	
-		msg = get_serial();
-		if (msg == 49){
-			send_serial(65);
-			PORTB = 0x20;
+		if (bit_is_set(UCSR0A, RXC0)){
+			msg = get_serial();
+			if(msg == 49){
+				send_serial(msg);
+				PORTB = 0x20;
+			}
+			else if(msg == 48){
+				send_serial(msg);
+				PORTB = 0x00;
+			}
 		}
-	       	else if (msg == 48){
-			send_serial(66);
-			PORTB = 0;
-		}
-	}
-
-
-//on scrute via get serial
-//si on a recu un truc on allume led 13
-	
-	
+		_delay_ms(50);	
+	}	
 	return 0;
 }
