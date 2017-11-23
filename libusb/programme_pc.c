@@ -164,9 +164,9 @@ int main(){
 	int nb_interfaces;
 	
 	get_interface_number(handle, &configValue,&interfaces, &nb_interfaces, &endpoint_list, &nb_ep);
-	printf("Endpoint number : %d \n",nb_ep);
 	release_kernel(handle, interfaces, nb_interfaces);
-
+	
+	printf("Endpoint number : %d \n",nb_ep);
 	int endpoints[2]; // ENDPOINT[0] => IN -------- ENDPOINT[1] => OUT
 	for(i=0;i<nb_ep;i++){
 		printf("Endpoint address : %d -- Endpoint direction : %d \n",endpoint_list[i].address,endpoint_list[i].direction);
