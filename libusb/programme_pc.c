@@ -2,7 +2,7 @@
 #include <libusb-1.0/libusb.h>
 #include <stdlib.h>
 
-#define MAX_DATA 8
+#define MAX_DATA 1
 
 typedef struct{
 	int interface;
@@ -36,7 +36,7 @@ int find_target(int id_vendor, int id_product, libusb_context * context, libusb_
 			return 0;
 		}
 	}
-	printf("target %d:%d not found",id_vendor,id_product);
+	printf("target %x:%x not found\n",id_vendor,id_product);
 	return -1;
 }
 
@@ -124,7 +124,16 @@ int read_interruption(libusb_device_handle * handle, int endpoint_in){
 	if(status!=0){ perror("libusb_interrupt_transfer"); return -1; }
 	return 0;
 
-	printf("%s\n",data);
+}
+
+int change_led_status(libusb_device_handle * handle, int endpoint_out, int led_state){
+	unsigned char data[MAX_DATA];
+	int * transferred = NULL;
+	int timeout = 1000;
+	data[0] = (led_state == 1)?0xF0:0x0F;
+	int status = libusb_interrupt_transfer(handle, endpoint_out, data, sizeof(data), transferred, timeout);
+	if(status!=0){ perror("libusb_interrupt_transfer"); return -1; }
+	return 0;
 }
 
 int release_kernel(libusb_device_handle * handle, int * interfaces_list, int nb_interfaces){ 
@@ -140,8 +149,8 @@ int release_kernel(libusb_device_handle * handle, int * interfaces_list, int nb_
 
 
 int main(){
-	int id_vendor = 0x046d;
-	int id_product = 0xc016;
+	int id_vendor = 0x0504;
+	int id_product = 0x1603;
 	int i;
 
 	//INITIALISATION BIBLIOTHEQUE
@@ -152,8 +161,8 @@ int main(){
 	//RECUPERATION DE LA POIGNEE DE LA CIBLE
 	printf("Recuperation de la poignée de la cible...\n");
 	libusb_device_handle * handle;
-	find_target(id_vendor,id_product,context,&handle);
-
+	int status = find_target(id_vendor,id_product,context,&handle);
+	if(status == -1){printf("Arret du programme\n"); return -1;}
 	//RECUPERATION DE L INTERFACE D INTERRUPTION
 	printf("Recuperation des interfaces et des points d'acces d'interruptions...\n");
 	int configValue;
@@ -185,7 +194,9 @@ int main(){
 	
 	//GESTION DES INTERRUPTION
 	printf("Lecture des interruptions...\n");
-	read_interruption(handle, endpoints[0]);
+	//read_interruption(handle, endpoints[0]);
+	change_led_status(handle, endpoints[1], 1);
+	
 
 	//LIBERATION DES INTERFACE ET CLOTURE DU CONTEXTE USB
 	release_all_interfaces(handle, interfaces, nb_interfaces);

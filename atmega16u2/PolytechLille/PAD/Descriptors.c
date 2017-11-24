@@ -43,7 +43,7 @@
  *  number of device configurations. The descriptor is read out by the USB host when the enumeration
  *  process begins.
  */
-const USB_Descriptor_Device_t PROGMEM RelayBoard_DeviceDescriptor =
+const USB_Descriptor_Device_t PROGMEM PAD_DeviceDescriptor =
 {
 	.Header                 = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
 
@@ -77,7 +77,7 @@ const USB_Descriptor_Configuration_t PROGMEM PAD_ConfigurationDescriptor =
 			.Header                 = {.Size = sizeof(USB_Descriptor_Configuration_Header_t), .Type = DTYPE_Configuration},
 
 			.TotalConfigurationSize = sizeof(USB_Descriptor_Configuration_t),
-			.TotalInterfaces        = 1,
+			.TotalInterfaces        = 2,
 
 			.ConfigurationNumber    = 1,
 			.ConfigurationStrIndex  = NO_DESCRIPTOR,
@@ -103,13 +103,13 @@ const USB_Descriptor_Configuration_t PROGMEM PAD_ConfigurationDescriptor =
 			.InterfaceStrIndex      = NO_DESCRIPTOR
 		},
 		
-	.HID_ReportINEndpoint =
+	.PAD_ReportINEndpoint =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = KEYBOARD_IN_EPADDR,
+			.EndpointAddress        = PAD_IN_EPADDR,
 			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-			.EndpointSize           = KEYBOARD_EPSIZE,
+			.EndpointSize           = PAD_EPSIZE,
 			.PollingIntervalMS      = 0x05
 		},
 	
@@ -129,13 +129,13 @@ const USB_Descriptor_Configuration_t PROGMEM PAD_ConfigurationDescriptor =
 			.InterfaceStrIndex      = NO_DESCRIPTOR
 		},
 		
-	.HID_ReportOUTEndpoint =
+	.PAD_ReportOUTEndpoint =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = KEYBOARD_OUT_EPADDR,
+			.EndpointAddress        = PAD_OUT_EPADDR,
 			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-			.EndpointSize           = KEYBOARD_EPSIZE,
+			.EndpointSize           = PAD_EPSIZE,
 			.PollingIntervalMS      = 0x05
 		},	
 	
@@ -145,7 +145,7 @@ const USB_Descriptor_Configuration_t PROGMEM PAD_ConfigurationDescriptor =
  *  the string descriptor with index 0 (the first index). It is actually an array of 16-bit integers, which indicate
  *  via the language ID table available at USB.org what languages the device supports for its string descriptors.
  */
-const USB_Descriptor_String_t PROGMEM RelayBoard_LanguageString =
+const USB_Descriptor_String_t PROGMEM PAD_LanguageString =
 {
 	.Header                 = {.Size = USB_STRING_LEN(1), .Type = DTYPE_String},
 
@@ -156,18 +156,18 @@ const USB_Descriptor_String_t PROGMEM RelayBoard_LanguageString =
  *  form, and is read out upon request by the host when the appropriate string ID is requested, listed in the Device
  *  Descriptor.
  */
-const USB_Descriptor_String_t PROGMEM RelayBoard_ManufacturerString = USB_STRING_DESCRIPTOR(L"SISPM");
+const USB_Descriptor_String_t PROGMEM PAD_ManufacturerString = USB_STRING_DESCRIPTOR(L"SISPM");
 
 /** Product descriptor string. This is a Unicode string containing the product's details in human readable form,
  *  and is read out upon request by the host when the appropriate string ID is requested, listed in the Device
  *  Descriptor.
  */
-const USB_Descriptor_String_t PROGMEM RelayBoard_ProductString = USB_STRING_DESCRIPTOR(L"RelayBoard");
+const USB_Descriptor_String_t PROGMEM PAD_ProductString = USB_STRING_DESCRIPTOR(L"PAD");
 
 /** Serial number string. This is a Unicode string containing the device's unique serial number, expressed as a
  *  series of uppercase hexadecimal digits.
  */
-const USB_Descriptor_String_t PROGMEM RelayBoard_SerialString = USB_STRING_DESCRIPTOR(L"00001");
+const USB_Descriptor_String_t PROGMEM PAD_SerialString = USB_STRING_DESCRIPTOR(L"00001");
 
 /** This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
  *  documentation) by the application code so that the address and size of a requested descriptor can be given
@@ -188,31 +188,31 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 	switch (DescriptorType)
 	{
 		case DTYPE_Device:
-			Address = &RelayBoard_DeviceDescriptor;
+			Address = &PAD_DeviceDescriptor;
 			Size    = sizeof(USB_Descriptor_Device_t);
 			break;
 		case DTYPE_Configuration:
-			Address = &RelayBoard_ConfigurationDescriptor;
+			Address = &PAD_ConfigurationDescriptor;
 			Size    = sizeof(USB_Descriptor_Configuration_t);
 			break;
 		case DTYPE_String:
 			switch (DescriptorNumber)
 			{
 				case STRING_ID_Language:
-					Address = &RelayBoard_LanguageString;
-					Size    = pgm_read_byte(&RelayBoard_LanguageString.Header.Size);
+					Address = &PAD_LanguageString;
+					Size    = pgm_read_byte(&PAD_LanguageString.Header.Size);
 					break;
 				case STRING_ID_Manufacturer:
-					Address = &RelayBoard_ManufacturerString;
-					Size    = pgm_read_byte(&RelayBoard_ManufacturerString.Header.Size);
+					Address = &PAD_ManufacturerString;
+					Size    = pgm_read_byte(&PAD_ManufacturerString.Header.Size);
 					break;
 				case STRING_ID_Product:
-					Address = &RelayBoard_ProductString;
-					Size    = pgm_read_byte(&RelayBoard_ProductString.Header.Size);
+					Address = &PAD_ProductString;
+					Size    = pgm_read_byte(&PAD_ProductString.Header.Size);
 					break;
 				case STRING_ID_Serial:
-					Address = &RelayBoard_SerialString;
-					Size    = pgm_read_byte(&RelayBoard_SerialString.Header.Size);
+					Address = &PAD_SerialString;
+					Size    = pgm_read_byte(&PAD_SerialString.Header.Size);
 					break;
 			}
 

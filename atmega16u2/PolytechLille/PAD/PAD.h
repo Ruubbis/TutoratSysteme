@@ -34,8 +34,8 @@
  *  Header file for RelayBoard.c.
  */
 
-#ifndef _RELAYBOARD_H_
-#define _RELAYBOARD_H_
+#ifndef _PAD_H_
+#define _PAD_H_
 
 	/* Includes: */
 		#include <avr/io.h>
@@ -48,6 +48,8 @@
 		#include <LUFA/Drivers/Board/LEDs.h>
 		#include <LUFA/Drivers/USB/USB.h>
 		#include <LUFA/Platform/Platform.h>
+		#include <LUFA/Common/Common.h>
+		#include <LUFA/Drivers/Peripheral/Serial.h>
 
 	/* Macros: */
 		#define RELAY1      (1 << 7)
@@ -58,8 +60,9 @@
 
 	/* Function Prototypes: */
 		void SetupHardware(void);
-
-		void EVENT_USB_Device_ControlRequest(void);
+		void PAD_Task(void);
+		void SendNextReport(void);
+		void ReceiveNextReport(void);
 
 #endif
 

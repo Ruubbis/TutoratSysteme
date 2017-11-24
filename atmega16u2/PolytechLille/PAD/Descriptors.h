@@ -78,6 +78,15 @@
 			STRING_ID_Product      = 2, /**< Product string ID */
 			STRING_ID_Serial       = 3, /**< Serial number string ID */
 		};
+	/* Macros: */
+		/** Endpoint address of the Keyboard HID reporting IN endpoint. */
+		#define PAD_IN_EPADDR        (ENDPOINT_DIR_IN  | 1)
+
+		/** Endpoint address of the Keyboard HID reporting OUT endpoint. */
+		#define PAD_OUT_EPADDR       (ENDPOINT_DIR_OUT | 2)
+
+		/** Size in bytes of the Keyboard HID reporting IN and OUT endpoints. */
+		#define PAD_EPSIZE           8
 
 	/* Function Prototypes: */
 		uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
