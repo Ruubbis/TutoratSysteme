@@ -49,6 +49,7 @@ int get_interface_number(libusb_device_handle * handle, int * configValue, int *
 	int endpoint_nb = 0;
 	int success = libusb_get_config_descriptor(target_device,0,&config);
 	if(success!=0){perror("libusb_get_config_descriptor"); return -1;}
+	printf("configValue = %d\n",config->bConfigurationValue);
 	*configValue = config->bConfigurationValue;	
 	
 	printf("Interfaces Number : %d\n",config->bNumInterfaces);
@@ -85,18 +86,21 @@ int get_interface_number(libusb_device_handle * handle, int * configValue, int *
 }
 
 int claim_interface(libusb_device_handle * handle, int configValue, int interfaceNumber){
+	printf("CLAIM INTERFACE : Handle = %x -- ConfigValue = %d -- interfaceNumber = %d\n",handle,configValue,interfaceNumber);
 	int status=libusb_claim_interface(handle,interfaceNumber);
 	if(status!=0){perror("libusb_claim_interface"); return -1;}
 	return 0;
 }
 
 int release_interface(libusb_device_handle * handle, int interfaceNumber){
+	printf("RELEASE INTERFACE : Handle = %x -- interfaceNumber = %d\n",handle,interfaceNumber);
 	int status = libusb_release_interface(handle,interfaceNumber);
 	if(status!=0){perror("libusb_release_interface"); return -1;}
 	return 0;
 }
 
 int claim_all_interfaces(libusb_device_handle * handle, int configValue, int * interfaces_list, int nb_interfaces){
+	printf("CLAIM ALL INTERFACE : Handle = %x -- ConfigValue = %d\n",handle, configValue);
 	int i;
 	int status = libusb_set_configuration(handle,configValue);
 	if(status!=0){perror("libusb_set_configuration"); return -1;}
@@ -108,6 +112,7 @@ int claim_all_interfaces(libusb_device_handle * handle, int configValue, int * i
 }
 
 int release_all_interfaces(libusb_device_handle * handle, int * interfaces_list, int nb_interfaces){
+	printf("RELEASE ALL INTERFACE : Handle = %x \n",handle);
 	int i;
 	for(i=0;i<nb_interfaces;i++){
 		int status = release_interface(handle, (*interfaces_list+i));
@@ -117,52 +122,60 @@ int release_all_interfaces(libusb_device_handle * handle, int * interfaces_list,
 }
 
 int read_interruption(libusb_device_handle * handle, int endpoint_in){
+	printf("READ INTERRUPTION : Handle = %x -- Endpoint IN = %d\n",handle, endpoint_in);
 	unsigned char data[MAX_DATA];
 	int * transferred = NULL;
 	int timeout = 0;
 	int status = libusb_interrupt_transfer(handle, endpoint_in, data, sizeof(data), transferred, timeout);
-	if(status!=0){ perror("libusb_interrupt_transfer"); return -1; }
+	if(status!=0){printf("status = %d\n",status); perror("libusb_interrupt_transfer"); return -1; }
 	return 0;
 
 }
 
 int change_led_status(libusb_device_handle * handle, int endpoint_out, int led_state){
+	printf("CHANGE LED STATUS : Handle = %x -- Endpoint OU = %d\n",handle, endpoint_out);
 	unsigned char data[MAX_DATA];
-	int * transferred = NULL;
+	int transferred;
 	int timeout = 1000;
 	data[0] = (led_state == 1)?0xF0:0x0F;
-	int status = libusb_interrupt_transfer(handle, endpoint_out, data, sizeof(data), transferred, timeout);
-	if(status!=0){ perror("libusb_interrupt_transfer"); return -1; }
+	printf("ep=%x\n",endpoint_out);
+	int status = libusb_interrupt_transfer(handle, endpoint_out, data, sizeof(data), &transferred, timeout);
+	if(status!=0){printf("status = %d\n",status); perror("libusb_interrupt_transfer"); return -1; }
 	return 0;
 }
 
 int release_kernel(libusb_device_handle * handle, int * interfaces_list, int nb_interfaces){ 
+	printf("RELEASE KERNEL : Handle = %x\n",handle);
 	int i;
+	printf("INTERFACES : N1 %d -- N2 %d\n",*(interfaces_list+0),*(interfaces_list+1));
 	for(i=0;i<nb_interfaces;i++){	
-		if(libusb_kernel_driver_active(handle,(*interfaces_list+i))){
-			int status=libusb_detach_kernel_driver(handle,(*interfaces_list+i));
+		if(libusb_kernel_driver_active(handle,*(interfaces_list+i))){
+			int status=libusb_detach_kernel_driver(handle,*(interfaces_list+i));
 			if(status!=0){perror("libusb_detach_kernel_driver"); exit(-1);}
 		}
 	}
+	printf("RELEASE KERNEL : Success\n");
 	return 0;
 }
 
 
 int main(){
-	int id_vendor = 0x0504;
-	int id_product = 0x1603;
+	int id_vendor = 0x046d;
+	int id_product = 0xc016;
 	int i;
 
 	//INITIALISATION BIBLIOTHEQUE
 	printf("Initialisation de la bibliotheque...\n");
 	libusb_context *context;
 	init_context(&context);
-
+	
 	//RECUPERATION DE LA POIGNEE DE LA CIBLE
 	printf("Recuperation de la poignée de la cible...\n");
 	libusb_device_handle * handle;
 	int status = find_target(id_vendor,id_product,context,&handle);
 	if(status == -1){printf("Arret du programme\n"); return -1;}
+	printf("HANDLE = %x\n",handle);
+	
 	//RECUPERATION DE L INTERFACE D INTERRUPTION
 	printf("Recuperation des interfaces et des points d'acces d'interruptions...\n");
 	int configValue;
@@ -174,7 +187,8 @@ int main(){
 	
 	get_interface_number(handle, &configValue,&interfaces, &nb_interfaces, &endpoint_list, &nb_ep);
 	release_kernel(handle, interfaces, nb_interfaces);
-	
+	printf("CONFIG VALUE = %d\n",configValue);
+
 	printf("Endpoint number : %d \n",nb_ep);
 	int endpoints[2]; // ENDPOINT[0] => IN -------- ENDPOINT[1] => OUT
 	for(i=0;i<nb_ep;i++){
@@ -194,11 +208,13 @@ int main(){
 	
 	//GESTION DES INTERRUPTION
 	printf("Lecture des interruptions...\n");
-	//read_interruption(handle, endpoints[0]);
-	change_led_status(handle, endpoints[1], 1);
+	read_interruption(handle, endpoints[0]);
+	//change_led_status(handle, endpoints[1], 1);
 	
 
 	//LIBERATION DES INTERFACE ET CLOTURE DU CONTEXTE USB
+	printf("Liberations des interfaces...\n");
 	release_all_interfaces(handle, interfaces, nb_interfaces);
+	libusb_close(handle);
 	libusb_exit(context);
 }
