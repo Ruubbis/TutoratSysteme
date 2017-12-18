@@ -2,7 +2,7 @@
 #include <libusb-1.0/libusb.h>
 #include <stdlib.h>
 
-#define MAX_DATA 1
+#define MAX_DATA 512
 
 typedef struct{
 	int interface;
@@ -124,10 +124,10 @@ int release_all_interfaces(libusb_device_handle * handle, int * interfaces_list,
 int read_interruption(libusb_device_handle * handle, int endpoint_in){
 	printf("READ INTERRUPTION : Handle = %x -- Endpoint IN = %d\n",handle, endpoint_in);
 	unsigned char data[MAX_DATA];
-	int * transferred = NULL;
+	int transferred;
 	int timeout = 0;
-	int status = libusb_interrupt_transfer(handle, endpoint_in, data, sizeof(data), transferred, timeout);
-	if(status!=0){printf("status = %d\n",status); perror("libusb_interrupt_transfer"); return -1; }
+	int status = libusb_interrupt_transfer(handle, endpoint_in, data, sizeof(data), &transferred, timeout);
+	if(status!=0){printf("status = %d\n",status);printf("%s\n",libusb_error_name(status)); perror("libusb_interrupt_transfer"); return -1; }
 	return 0;
 
 }
@@ -160,8 +160,8 @@ int release_kernel(libusb_device_handle * handle, int * interfaces_list, int nb_
 
 
 int main(){
-	int id_vendor = 0x046d;
-	int id_product = 0xc016;
+	int id_vendor = 0x413c;
+	int id_product = 0x3016;
 	int i;
 
 	//INITIALISATION BIBLIOTHEQUE
