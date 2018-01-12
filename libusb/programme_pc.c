@@ -2,7 +2,7 @@
 #include <libusb-1.0/libusb.h>
 #include <stdlib.h>
 
-#define MAX_DATA 512
+#define MAX_DATA 8
 
 typedef struct{
 	int interface;
@@ -123,23 +123,25 @@ int release_all_interfaces(libusb_device_handle * handle, int * interfaces_list,
 
 int read_interruption(libusb_device_handle * handle, int endpoint_in){
 	printf("READ INTERRUPTION : Handle = %x -- Endpoint IN = %d\n",handle, endpoint_in);
-	unsigned char data[MAX_DATA];
+	unsigned char data;
 	int transferred;
-	int timeout = 0;
-	int status = libusb_interrupt_transfer(handle, endpoint_in, data, sizeof(data), &transferred, timeout);
-	if(status!=0){printf("status = %d\n",status);printf("%s\n",libusb_error_name(status)); perror("libusb_interrupt_transfer"); return -1; }
+	int timeout = 5000;
+	int status = libusb_interrupt_transfer(handle, endpoint_in, &data, 1, &transferred, timeout);
+	if(status!=0){printf("status = %d\n",status);printf("%s\n",libusb_error_name(status)); perror("libusb_interrupt_transfer");}
+	if(transferred==1){printf("data received !\n");
+	printf("data = %d\n",data);}
 	return 0;
 
 }
 
 int change_led_status(libusb_device_handle * handle, int endpoint_out, int led_state){
 	printf("CHANGE LED STATUS : Handle = %x -- Endpoint OU = %d\n",handle, endpoint_out);
-	unsigned char data[MAX_DATA];
+	unsigned char data;
 	int transferred;
 	int timeout = 1000;
-	data[0] = (led_state == 1)?0xF0:0x0F;
+	data = (led_state == 1)?0xF0:0x0F;
 	printf("ep=%x\n",endpoint_out);
-	int status = libusb_interrupt_transfer(handle, endpoint_out, data, sizeof(data), &transferred, timeout);
+	int status = libusb_interrupt_transfer(handle, endpoint_out, &data, 1, &transferred, timeout);
 	if(status!=0){printf("status = %d\n",status); perror("libusb_interrupt_transfer"); return -1; }
 	return 0;
 }
@@ -160,8 +162,8 @@ int release_kernel(libusb_device_handle * handle, int * interfaces_list, int nb_
 
 
 int main(){
-	int id_vendor = 0x413c;
-	int id_product = 0x3016;
+	int id_vendor = 0xabcd;
+	int id_product = 0x1234;
 	int i;
 
 	//INITIALISATION BIBLIOTHEQUE

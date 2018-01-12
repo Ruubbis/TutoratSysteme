@@ -45,7 +45,7 @@ void output_init(void){
 
 void input_init(void){
 	DDRD &= 0x83;  // PIN 2 to 6 as input :  10000011 
-	PORTD |= 0x7C; // Pull-up activated on PIN 2 to 6 :  01111100
+	PORTD |= 0x7C; // Pull-up activated on PIN 0 to 6 :  01111100
 }
 
 int input_get(void){

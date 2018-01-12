@@ -1,3 +1,4 @@
+
 /*
              LUFA Library
      Copyright (C) Dean Camera, 2017.
@@ -82,7 +83,7 @@ const USB_Descriptor_Configuration_t PROGMEM RelayBoard_ConfigurationDescriptor 
 			.ConfigurationNumber    = 1,
 			.ConfigurationStrIndex  = NO_DESCRIPTOR,
 
-			.ConfigAttributes       = USB_CONFIG_ATTR_RESERVED,
+			.ConfigAttributes       = (USB_CONFIG_ATTR_RESERVED | USB_CONFIG_ATTR_SELFPOWERED),
 
 			.MaxPowerConsumption    = USB_CONFIG_POWER_MA(500)
 		},
@@ -96,9 +97,9 @@ const USB_Descriptor_Configuration_t PROGMEM RelayBoard_ConfigurationDescriptor 
 
 			.TotalEndpoints         = 1,
 
-			.Class                  = HID_CSCP_HIDClass,
-			.SubClass               = HID_CSCP_BootSubclass,
-			.Protocol               = HID_CSCP_KeyboardBootProtocol,
+			.Class          	= USB_CSCP_VendorSpecificClass,
+			.SubClass               = 0x00,
+			.Protocol               = 0x00,
 
 			.InterfaceStrIndex      = NO_DESCRIPTOR
 		},
@@ -113,9 +114,9 @@ const USB_Descriptor_Configuration_t PROGMEM RelayBoard_ConfigurationDescriptor 
 
 			.TotalEndpoints         = 1,
 
-			.Class                  = HID_CSCP_HIDClass,
-			.SubClass               = HID_CSCP_BootSubclass,
-			.Protocol               = HID_CSCP_KeyboardBootProtocol,
+			.Class                  = USB_CSCP_VendorSpecificClass,
+			.SubClass               = 0x00,
+			.Protocol               = 0x00,
 
 			.InterfaceStrIndex      = NO_DESCRIPTOR
 		},
@@ -146,18 +147,13 @@ const USB_Descriptor_Configuration_t PROGMEM RelayBoard_ConfigurationDescriptor 
  *  the string descriptor with index 0 (the first index). It is actually an array of 16-bit integers, which indicate
  *  via the language ID table available at USB.org what languages the device supports for its string descriptors.
  */
-const USB_Descriptor_String_t PROGMEM RelayBoard_LanguageString =
-{
-	.Header                 = {.Size = USB_STRING_LEN(1), .Type = DTYPE_String},
-
-	.UnicodeString          = {LANGUAGE_ID_ENG}
-};
+const USB_Descriptor_String_t PROGMEM RelayBoard_LanguageString = USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
 
 /** Manufacturer descriptor string. This is a Unicode string containing the manufacturer's details in human readable
  *  form, and is read out upon request by the host when the appropriate string ID is requested, listed in the Device
  *  Descriptor.
  */
-const USB_Descriptor_String_t PROGMEM RelayBoard_ManufacturerString = USB_STRING_DESCRIPTOR(L"SISPM");
+const USB_Descriptor_String_t PROGMEM RelayBoard_ManufacturerString = USB_STRING_DESCRIPTOR(L"Polytech");
 
 /** Product descriptor string. This is a Unicode string containing the product's details in human readable form,
  *  and is read out upon request by the host when the appropriate string ID is requested, listed in the Device
@@ -167,8 +163,8 @@ const USB_Descriptor_String_t PROGMEM RelayBoard_ProductString = USB_STRING_DESC
 
 /** Serial number string. This is a Unicode string containing the device's unique serial number, expressed as a
  *  series of uppercase hexadecimal digits.
- */
-const USB_Descriptor_String_t PROGMEM RelayBoard_SerialString = USB_STRING_DESCRIPTOR(L"00001");
+*/
+
 
 /** This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
  *  documentation) by the application code so that the address and size of a requested descriptor can be given
@@ -210,10 +206,6 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 				case STRING_ID_Product:
 					Address = &RelayBoard_ProductString;
 					Size    = pgm_read_byte(&RelayBoard_ProductString.Header.Size);
-					break;
-				case STRING_ID_Serial:
-					Address = &RelayBoard_SerialString;
-					Size    = pgm_read_byte(&RelayBoard_SerialString.Header.Size);
 					break;
 			}
 

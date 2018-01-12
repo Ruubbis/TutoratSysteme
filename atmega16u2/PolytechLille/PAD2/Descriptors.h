@@ -50,7 +50,6 @@
 		{
 			USB_Descriptor_Configuration_Header_t Config;
 
-			// Relay Board Interface
 			USB_Descriptor_Interface_t            Interface;
 			USB_Descriptor_Endpoint_t             PAD_ReportINEndpoint;
 			USB_Descriptor_Interface_t            Interface_2;	
@@ -85,7 +84,7 @@
 		#define PAD_OUT_EPADDR       (ENDPOINT_DIR_OUT | 2)
 
 		/** Size in bytes of the Keyboard HID reporting IN and OUT endpoints. */
-		#define PAD_EPSIZE           1
+		#define PAD_EPSIZE           8
 	/* Function Prototypes: */
 		uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 		                                    const uint16_t wIndex,
